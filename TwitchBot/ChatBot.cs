@@ -12,7 +12,11 @@ public class ChatBot
     private string _target;
     private StreamReader _reader;
     private StreamWriter _writer;
+    private MessageHandler _messageHandler;
     private TaskCompletionSource<int> connected = new TaskCompletionSource<int>();
+    
+    
+    public string GiveawayStatus { get; set; }
     
     public event TwitchChatEventHandler OnMessage = delegate { };
     public delegate void TwitchChatEventHandler(object sender, TwitchChatMessage e);
@@ -26,15 +30,25 @@ public class ChatBot
 
     public ChatBot()
     {
-        using (StreamReader reader = new StreamReader("config.json"))
-        {
-            string? configData = reader.ReadToEndAsync().ToString();
-            dynamic config = JsonConvert.DeserializeObject(configData);
-            _ip = config.ip;
-            _password = config.password;
-            _botUsername = config.username;
-            _port = config.port;
-        }
+        // using (StreamReader reader = new StreamReader("config.json"))
+        // {
+        //     _messageHandler = new MessageHandler();
+        //     var configData = reader.ReadToEndAsync().ToString();
+        //     Console.WriteLine(configData);
+        //     dynamic config = JsonConvert.DeserializeObject(configData);
+        //     _ip = config.ip;
+        //     _password = config.password;
+        //     _botUsername = config.username;
+        //     _port = config.port;
+        //     GiveawayStatus = "Сегодня без розыгрыша :(";
+        // }
+        //
+        _messageHandler = new MessageHandler();
+        _ip = "irc.chat.twitch.tv";
+        _password = "oauth:on14n7g0h83u4gwinlw0oklt1kwzoe";
+        _botUsername = "justordinarybot";
+        _port = 6667;
+        GiveawayStatus = "Сегодня без розыгрыша :(";
     }
 
     public async Task Run()
@@ -60,10 +74,11 @@ public class ChatBot
 
             if (split.Length > 2 && split[1] == "PRIVMSG")
             {
-                int exclamationPointPosition = split[0].IndexOf("!", StringComparison.Ordinal);
+                int exclamationPointPosition = split[0].IndexOf("!");
                 string username = split[0].Substring(1, exclamationPointPosition - 1);
-                int secondColonPosition = line.IndexOf(':', 1);
-                string message = line.Substring(secondColonPosition + 1);
+                //Skip the first character, the first colon, then find the next colon
+                int secondColonPosition = line.IndexOf(':', 1);//the 1 here is what skips the first character
+                string message = line.Substring(secondColonPosition + 1);//Everything past the second colon
                 string channel = split[2].TrimStart('#');
                     
                 OnMessage(this, new TwitchChatMessage
