@@ -9,4 +9,6 @@ public class MessageHandler
         var message = _statsParser.GetFaceitElo().Result;
         Console.WriteLine(message);
     }
+    
+    
 }

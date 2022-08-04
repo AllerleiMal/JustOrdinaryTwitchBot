@@ -1,5 +1,7 @@
-﻿using System.Net.Sockets;
-using Newtonsoft.Json;
+﻿using System;
+using System.IO;
+using System.Threading.Tasks;
+using System.Net.Sockets;
 
 namespace TwitchBot;
 
@@ -45,10 +47,10 @@ public class ChatBot
         //
         _messageHandler = new MessageHandler();
         _ip = "irc.chat.twitch.tv";
-        _password = "oauth:on14n7g0h83u4gwinlw0oklt1kwzoe";
+        _password = "oauth:e3l1k290yhbv37o7ddtyvioemaofdp";
         _botUsername = "justordinarybot";
         _port = 6667;
-        GiveawayStatus = "Сегодня без розыгрыша :(";
+        GiveawayStatus = "Сегодня без розыгрыша >(";
     }
 
     public async Task Run()
@@ -65,7 +67,6 @@ public class ChatBot
         {
             string line = await _reader.ReadLineAsync();
             Console.WriteLine(line);
-                
             string[] split = line.Split(" ");
             if (line.StartsWith("PING"))
             {
@@ -102,6 +103,7 @@ public class ChatBot
         await connected.Task;
         await _writer.WriteLineAsync($"JOIN #{channel}");
         _target = channel;
+        Console.WriteLine("Chat bot connected");
     }
 
     private async Task PongTwitch(string message)

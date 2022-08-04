@@ -13,15 +13,20 @@ namespace TwitchBot
             chatBot.Run().SafeFireAndForget();
             await chatBot.JoinChannel("ustaluj");
             await chatBot.SendMessage("Hey my bot has started up");
-            await Task.Delay(-1);
-            
+
             chatBot.OnMessage += async (sender, twitchChatMessage) =>
             {
-                Console.WriteLine($"{twitchChatMessage.Sender} said '{twitchChatMessage.Message}'");
+                Console.WriteLine($"{twitchChatMessage.Message}");
                 //Listen for !hey command
                 if (twitchChatMessage.Message.StartsWith("!hey"))
                 {
                     await chatBot.SendMessage($"Hey there {twitchChatMessage.Sender}");
+                }else if (twitchChatMessage.Message.StartsWith("!giveaway"))
+                {
+                    await chatBot.SendMessage($"{chatBot.GiveawayStatus}");
+                }else if (twitchChatMessage.Message.StartsWith("!elo"))
+                {
+                    
                 }
             };
             
