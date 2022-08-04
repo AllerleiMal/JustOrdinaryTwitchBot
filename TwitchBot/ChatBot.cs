@@ -2,6 +2,8 @@
 using System.IO;
 using System.Threading.Tasks;
 using System.Net.Sockets;
+using System.Xml.Serialization;
+using Newtonsoft.Json;
 
 namespace TwitchBot;
 
@@ -32,20 +34,7 @@ public class ChatBot
 
     public ChatBot()
     {
-        // using (StreamReader reader = new StreamReader("config.json"))
-        // {
-        //     _messageHandler = new MessageHandler();
-        //     var configData = reader.ReadToEndAsync().ToString();
-        //     Console.WriteLine(configData);
-        //     dynamic config = JsonConvert.DeserializeObject(configData);
-        //     _ip = config.ip;
-        //     _password = config.password;
-        //     _botUsername = config.username;
-        //     _port = config.port;
-        //     GiveawayStatus = "Сегодня без розыгрыша :(";
-        // }
-        //
-        _messageHandler = new MessageHandler();
+        _messageHandler = new MessageHandler("CockTale");
         _ip = "irc.chat.twitch.tv";
         _password = "oauth:e3l1k290yhbv37o7ddtyvioemaofdp";
         _botUsername = "justordinarybot";
@@ -65,29 +54,21 @@ public class ChatBot
         
         while (true)
         {
-            string line = await _reader.ReadLineAsync();
-            Console.WriteLine(line);
-            string[] split = line.Split(" ");
-            if (line.StartsWith("PING"))
+            var answer = _messageHandler.GetAnswer(await _reader.ReadLineAsync());
+            switch (answer.Item1)
             {
-                await PongTwitch(split[1]);
-            }
-
-            if (split.Length > 2 && split[1] == "PRIVMSG")
-            {
-                int exclamationPointPosition = split[0].IndexOf("!");
-                string username = split[0].Substring(1, exclamationPointPosition - 1);
-                //Skip the first character, the first colon, then find the next colon
-                int secondColonPosition = line.IndexOf(':', 1);//the 1 here is what skips the first character
-                string message = line.Substring(secondColonPosition + 1);//Everything past the second colon
-                string channel = split[2].TrimStart('#');
-                    
-                OnMessage(this, new TwitchChatMessage
-                {
-                    Message = message,
-                    Sender = username,
-                    Channel = channel
-                });
+                case MessageStatus.CommandMessage:
+                    await SendMessage(answer.Item2);
+                    break;
+                case MessageStatus.EmergencyExit:
+                    return;
+                case MessageStatus.IgnoreMessage:
+                    continue;
+                case MessageStatus.TwitchPing:
+                    await PongTwitch(answer.Item2);
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
             }
         }
     }
